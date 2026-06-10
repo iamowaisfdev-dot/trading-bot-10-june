@@ -514,6 +514,59 @@ def render_action_signals(results):
     return Panel(c, title="🎯 Action Signals (Trade These!)", border_style="bright_green")
 
 
+# ── NTFY NOTIFICATION ─────────────────────────────────────────
+NTFY_TOPIC = "my-personal-trading-bot"
+
+def send_notification(symbol, sig):
+    signal = sig.get("signal", "")
+    if signal not in ("LONG", "SHORT"):
+        return
+
+    emoji   = "🟢" if signal == "LONG" else "🔴"
+    entry   = safe_float(sig.get("entry_price"), 0)
+    sl      = safe_float(sig.get("stop_loss"), 0)
+    tp1     = safe_float(sig.get("take_profit_1"), 0)
+    tp2     = safe_float(sig.get("take_profit_2"), 0)
+    tp3     = safe_float(sig.get("take_profit_3"), 0)
+    conf    = safe_int(sig.get("confidence"), 0)
+    lev     = safe_int(sig.get("suggested_leverage"), 3)
+    rr      = safe_float(sig.get("risk_reward"), 0)
+
+    title   = f"{emoji} {signal} {symbol} | Conf: {conf}/10 | {lev}x Lev"
+    message = (
+        f"📌 Signal  : {signal}\n"
+        f"💵 Entry   : {entry:.6f}\n"
+        f"🛑 SL      : {sl:.6f}\n"
+        f"🎯 TP1     : {tp1:.6f}\n"
+        f"🎯 TP2     : {tp2:.6f}\n"
+        f"🎯 TP3     : {tp3:.6f}\n"
+        f"⚡ Leverage: {lev}x | R/R: 1:{rr:.1f}\n"
+        f"💡 {sig.get('reasoning','')[:100]}"
+    )
+
+    try:
+        resp = requests.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            data=message.encode("utf-8"),
+            headers={
+                "Title"   : title.encode("utf-8"),        # ← encode fix
+                "Priority": "high",
+                "Tags"    : "white_check_mark" if signal == "LONG" else "rotating_light",
+            },
+            timeout=10
+        )
+        # Response check karo
+        if resp.status_code == 200:
+            console.print(f"[green]📲 Notification sent → {symbol} {signal} ✅[/green]")
+        else:
+            console.print(f"[red]❌ ntfy failed ({resp.status_code}): {resp.text}[/red]")
+    except requests.exceptions.ConnectionError:
+        console.print(f"[red]❌ ntfy: Internet connection error[/red]")
+    except requests.exceptions.Timeout:
+        console.print(f"[red]❌ ntfy: Request timeout[/red]")
+    except Exception as e:
+        console.print(f"[yellow]⚠️ Notification error ({symbol}): {type(e).__name__}: {e}[/yellow]")
+
 # ══════════════════════════════════════════════════════════════
 #  6. MAIN SCAN LOOP
 # ══════════════════════════════════════════════════════════════
@@ -560,7 +613,7 @@ def run_scan():
 
             if signal_data.get("signal") not in ("ERROR", None):
                 log_signal(symbol, signal_data, price)
-
+                send_notification(symbol, signal_data)
             progress.advance(task)
             time.sleep(1.5)  # Rate limit buffer
 
@@ -630,7 +683,7 @@ def main():
             now_pkt     = datetime.now(pkt)
             current_hour = now_pkt.hour
 
-            if 12 <= current_hour < 24:
+            if 10 <= current_hour < 24:
                 console.rule(f"[cyan]🔍 Scan #{scan_count}  |  {now_pkt.strftime('%I:%M %p')} PKT[/cyan]")
                 run_scan()
                 console.print(f"[dim]💾 Saved to {SIGNAL_LOG_FILE} | Next scan in {SCAN_INTERVAL_MINUTES} mins[/dim]\n")
@@ -648,6 +701,7 @@ def main():
             console.print(f"[dim]{traceback.format_exc()}[/dim]")
             console.print("[yellow]Retrying in 60 seconds...[/yellow]")
             time.sleep(60)
+
 
 
 if __name__ == "__main__":
