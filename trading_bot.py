@@ -625,9 +625,18 @@ def main():
     while True:
         try:
             scan_count += 1
-            console.rule(f"[cyan]🔍 Scan #{scan_count}[/cyan]")
-            run_scan()
-            console.print(f"[dim]💾 Saved to {SIGNAL_LOG_FILE} | Next scan in {SCAN_INTERVAL_MINUTES} mins[/dim]\n")
+            import pytz
+            pkt         = pytz.timezone("Asia/Karachi")
+            now_pkt     = datetime.now(pkt)
+            current_hour = now_pkt.hour
+
+            if 12 <= current_hour < 24:
+                console.rule(f"[cyan]🔍 Scan #{scan_count}  |  {now_pkt.strftime('%I:%M %p')} PKT[/cyan]")
+                run_scan()
+                console.print(f"[dim]💾 Saved to {SIGNAL_LOG_FILE} | Next scan in {SCAN_INTERVAL_MINUTES} mins[/dim]\n")
+            else:
+                console.print(f"[dim]💤 Market hours nahi hain ({now_pkt.strftime('%I:%M %p')} PKT) — next check in 2 hours...[/dim]\n")
+
             countdown_display(SCAN_INTERVAL_MINUTES)
 
         except KeyboardInterrupt:

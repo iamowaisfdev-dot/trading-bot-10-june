@@ -11,13 +11,7 @@ GEMINI_MODEL = "gemini-2.5-flash-lite"
 # 📊 Jinhe scan karna chahte ho (Binance Futures symbols)
 SYMBOLS = [
     "BTCUSDT",
-    "ETHUSDT",
-    "SOLUSDT",
     "BNBUSDT",
-    "XRPUSDT",
-    "DOGEUSDT",
-    "ADAUSDT",
-    "AVAXUSDT",
 ]
 
 # ⏱️ Timeframe (1m, 3m, 5m, 15m, 30m, 1h, 4h)
