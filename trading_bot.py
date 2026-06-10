@@ -688,7 +688,7 @@ def main():
                 run_scan()
                 console.print(f"[dim]💾 Saved to {SIGNAL_LOG_FILE} | Next scan in {SCAN_INTERVAL_MINUTES} mins[/dim]\n")
             else:
-                console.print(f"[dim]💤 Market hours nahi hain ({now_pkt.strftime('%I:%M %p')} PKT) — next check in 2 hours...[/dim]\n")
+                console.print(f"[dim]💤 Market hours nahi hain ({now_pkt.strftime('%I:%M %p')} PKT) — next check in 1 hours...[/dim]\n")
 
             countdown_display(SCAN_INTERVAL_MINUTES)
 
