@@ -12,7 +12,7 @@ GEMINI_MODEL = "gemini-2.5-flash-lite"
 SYMBOLS = [
     "BTCUSDT",
     "BNBUSDT",
-    "SOLUSDT"
+    "SOLUSDT",
 ]
 
 # ⏱️ Timeframe (1m, 3m, 5m, 15m, 30m, 1h, 4h)
